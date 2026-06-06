@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>ChatGPT Style – Mistral Project Chat</title>
+  <title>Chat – Mistral + ملفات مشروع</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     :root{
@@ -32,11 +32,9 @@
       font-size:15px;
       color:var(--text-muted);
       position:relative;
-      z-index:2;
+      z-index:20;
       background:#050509;
     }
-
-    /* زر فتح الملفات */
     .files-toggle{
       position:absolute;
       left:10px;
@@ -50,19 +48,20 @@
       cursor:pointer;
       font-size:14px;
     }
-
     .layout{
       display:flex;
       flex:1;
       overflow:hidden;
       position:relative;
     }
-
-    /* السلايد الجانبي للملفات */
+    /* السلايد الجانبي ثابت من اليسار */
     .files-sidebar{
+      position:fixed;
+      top:48px; /* ارتفاع الهيدر تقريباً */
+      left:0;
       width:260px;
+      height:calc(100vh - 48px);
       background:#0b0b10;
-      border-left:1px solid var(--border);
       border-right:1px solid var(--border);
       padding:10px;
       display:flex;
@@ -70,7 +69,7 @@
       gap:8px;
       transform:translateX(-100%);
       transition:0.25s ease;
-      z-index:1;
+      z-index:10;
     }
     .files-sidebar.open{
       transform:translateX(0);
@@ -121,12 +120,12 @@
       white-space:pre;
     }
 
-    /* منطقة المحادثة */
     .chat-wrapper{
       flex:1;
       display:flex;
       flex-direction:column;
       height:100%;
+      margin-left:0; /* لأن السلايد ثابت */
     }
     .chat-container{
       flex:1;
@@ -162,8 +161,6 @@
       color:var(--text-muted);
       background:transparent;
     }
-
-    /* زر النسخ */
     .copy-btn{
       position:absolute;
       top:6px;
@@ -181,7 +178,6 @@
     .message.ai:hover .copy-btn{
       opacity:1;
     }
-
     .input-bar{
       display:flex;
       gap:8px;
@@ -213,15 +209,8 @@
       opacity:.5;
       cursor:default;
     }
-
     @media(max-width:768px){
       .message{max-width:90%}
-      .files-sidebar{
-        position:absolute;
-        height:100%;
-        top:0;
-        left:0;
-      }
     }
   </style>
 </head>
@@ -237,7 +226,7 @@
     <aside id="filesSidebar" class="files-sidebar">
       <div class="files-header">ملفات المشروع البرمجي</div>
       <div id="filesList"></div>
-      <pre id="filePreview" placeholder="لا يوجد ملف محدد"></pre>
+      <pre id="filePreview"></pre>
     </aside>
 
     <!-- المحادثة -->
@@ -266,10 +255,9 @@
     const filesList = document.getElementById('filesList');
     const filePreview = document.getElementById('filePreview');
 
-    // 🔑 مفتاح Mistral API – ضع مفتاحك هنا
+    // 🔑 ضع مفتاح Mistral API هنا
     const MISTRAL_API_KEY = "YOUR_MISTRAL_API_KEY_HERE";
 
-    // حالة الملفات
     const files = {};
     let currentFile = null;
 
@@ -351,7 +339,6 @@
       return data.choices[0].message.content;
     }
 
-    // طلب مشروع برمجي: نطلب من النموذج أن يرجع JSON فقط فيه الملفات
     async function sendToMistralProject(userText){
       const url = "https://api.mistral.ai/v1/chat/completions";
       const body = {
@@ -390,7 +377,6 @@ No explanations, no markdown, no extra text.`
     async function handleProjectFlow(text){
       try{
         const raw = await sendToMistralProject(text);
-
         let json;
         try{
           json = JSON.parse(raw);
@@ -398,20 +384,16 @@ No explanations, no markdown, no extra text.`
           addMessage("⚠️ تعذر فهم استجابة المشروع (ليست JSON صالحة).", "ai");
           return;
         }
-
         if(!json.files || !Array.isArray(json.files) || json.files.length === 0){
           addMessage("⚠️ لم يتم العثور على ملفات في استجابة النموذج.", "ai");
           return;
         }
-
-        // هنا نحقق طلبك: كل ملف يُرسل في رسالة مستقلة
         json.files.forEach(file=>{
           const name = file.name || "unnamed.txt";
           const content = file.content || "";
           addFile(name, content);
           addMessage("ملف: " + name + "\n\n" + content, "ai");
         });
-
       }catch(e){
         addMessage("⚠️ حدث خطأ أثناء توليد المشروع.", "ai");
       }
@@ -425,11 +407,10 @@ No explanations, no markdown, no extra text.`
       input.value = '';
       sendBtn.disabled = true;
 
-      // إذا كان الطلب عن "مشروع" نستخدم وضع المشروع
       const isProject =
         text.includes("مشروع") ||
         text.includes("project") ||
-        text.includes("موقع") && text.includes("كامل");
+        (text.includes("موقع") && text.includes("كامل"));
 
       if(isProject){
         await handleProjectFlow(text);
