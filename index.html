@@ -27,7 +27,8 @@
       flex-direction:column;
       overflow:hidden;
     }
-    /* شريط العنوان مثل VS Code */
+
+    /* Title bar */
     .titlebar{
       height:28px;
       background:#3c3c3c;
@@ -38,13 +39,9 @@
       color:var(--text-muted);
       justify-content:space-between;
     }
-    .titlebar-left span{
-      margin-left:8px;
-    }
     .titlebar-right{
       display:flex;
       gap:6px;
-      font-size:10px;
     }
     .titlebar-btn{
       width:12px;height:12px;border-radius:50%;
@@ -53,7 +50,7 @@
     .tb-yellow{background:#febc2e}
     .tb-green{background:#28c840}
 
-    /* شريط القوائم */
+    /* Menu bar */
     .menubar{
       height:24px;
       background:#2d2d2d;
@@ -65,14 +62,14 @@
       gap:12px;
     }
 
-    /* التخطيط الرئيسي */
+    /* Layout */
     .main{
       flex:1;
       display:flex;
       overflow:hidden;
     }
 
-    /* الشريط الجانبي الأيسر (Explorer) */
+    /* Activity bar */
     .activitybar{
       width:40px;
       background:#333333;
@@ -93,6 +90,7 @@
       color:var(--accent);
     }
 
+    /* Sidebar */
     .sidebar{
       width:240px;
       background:var(--bg-sidebar);
@@ -120,11 +118,6 @@
       align-items:center;
       gap:6px;
     }
-    .file-item span{
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
     .file-item:hover{
       background:#2a2d2e;
     }
@@ -149,7 +142,7 @@
       cursor:pointer;
     }
 
-    /* الوسط: التابات + المحرر */
+    /* Center editor */
     .center{
       flex:1;
       display:flex;
@@ -167,10 +160,9 @@
       padding:0 12px;
       display:flex;
       align-items:center;
-      gap:6px;
-      border-inline-end:1px solid #2d2d2d;
       cursor:pointer;
       color:var(--text-muted);
+      border-inline-end:1px solid #2d2d2d;
     }
     .tab.active{
       background:#1e1e1e;
@@ -179,8 +171,17 @@
     }
     .editor{
       flex:1;
-      position:relative;
       display:flex;
+    }
+    .gutter{
+      width:40px;
+      background:#252526;
+      color:var(--text-muted);
+      font-family:Consolas,monospace;
+      font-size:12px;
+      padding:10px 4px;
+      text-align:right;
+      user-select:none;
     }
     .editor textarea{
       flex:1;
@@ -196,18 +197,8 @@
       text-align:left;
       line-height:1.5;
     }
-    .gutter{
-      width:40px;
-      background:#252526;
-      color:var(--text-muted);
-      font-family:Consolas,monospace;
-      font-size:12px;
-      padding:10px 4px;
-      text-align:right;
-      user-select:none;
-    }
 
-    /* يمين: لوحة المحادثة */
+    /* Chat panel */
     .right-panel{
       width:320px;
       background:var(--bg-chat);
@@ -233,18 +224,10 @@
       line-height:1.5;
       white-space:pre-wrap;
     }
-    .msg.user{
-      color:#c5e1ff;
-    }
-    .msg.ai{
-      color:#e5e5e5;
-    }
-    .msg.system{
-      color:var(--text-muted);
-      font-size:11px;
-      text-align:center;
-      margin:8px 0;
-    }
+    .msg.user{color:#c5e1ff}
+    .msg.ai{color:#e5e5e5}
+    .msg.system{color:var(--text-muted);font-size:11px;text-align:center}
+
     .copy-btn{
       display:inline-block;
       margin-top:2px;
@@ -256,6 +239,7 @@
       color:#fff;
       cursor:pointer;
     }
+
     .chat-input{
       border-top:1px solid var(--border);
       padding:6px;
@@ -285,7 +269,7 @@
       cursor:pointer;
     }
 
-    /* شريط الحالة */
+    /* Status bar */
     .statusbar{
       height:22px;
       background:#007acc;
@@ -296,19 +280,13 @@
       justify-content:space-between;
       padding:0 10px;
     }
-    .status-left span,
-    .status-right span{
-      margin-inline-end:10px;
-    }
   </style>
 </head>
 <body>
 
   <!-- Title bar -->
   <div class="titlebar">
-    <div class="titlebar-left">
-      <span>Web VS Code – Mistral</span>
-    </div>
+    <div>Web VS Code – Mistral</div>
     <div class="titlebar-right">
       <div class="titlebar-btn tb-red"></div>
       <div class="titlebar-btn tb-yellow"></div>
@@ -318,13 +296,7 @@
 
   <!-- Menu bar -->
   <div class="menubar">
-    <span>File</span>
-    <span>Edit</span>
-    <span>Selection</span>
-    <span>View</span>
-    <span>Go</span>
-    <span>Run</span>
-    <span>Help</span>
+    <span>File</span><span>Edit</span><span>View</span><span>Run</span><span>Help</span>
   </div>
 
   <!-- Main layout -->
@@ -338,7 +310,7 @@
       <div class="activity-icon">⚙️</div>
     </div>
 
-    <!-- Explorer sidebar -->
+    <!-- Explorer -->
     <aside class="sidebar">
       <div class="sidebar-header">Explorer</div>
       <div id="filesList" class="files-list"></div>
@@ -347,7 +319,7 @@
       </div>
     </aside>
 
-    <!-- Center editor -->
+    <!-- Editor -->
     <div class="center">
       <div id="tabs" class="tabs"></div>
       <div class="editor">
@@ -356,15 +328,15 @@
       </div>
     </div>
 
-    <!-- Right chat panel -->
+    <!-- Chat -->
     <aside class="right-panel">
       <div class="right-header">Mistral Assistant</div>
       <div id="chat" class="chat-container">
-        <div class="msg system">اسأل عن الكود الحالي أو اطلب تعديلات…</div>
+        <div class="msg system">اسأل عن الكود أو اطلب تعديلات…</div>
       </div>
       <div class="chat-input">
-        <textarea id="chatInput" rows="2" placeholder="اكتب سؤالك عن المشروع أو الملف الحالي..."></textarea>
-        <button id="sendChatBtn">إرسال للمساعد</button>
+        <textarea id="chatInput" rows="2" placeholder="اكتب سؤالك..."></textarea>
+        <button id="sendChatBtn">إرسال</button>
       </div>
     </aside>
 
@@ -372,195 +344,159 @@
 
   <!-- Status bar -->
   <div class="statusbar">
-    <div class="status-left">
-      <span id="statusFile">No file</span>
-      <span>UTF-8</span>
-    </div>
-    <div class="status-right">
-      <span>Ln <span id="ln">1</span>, Col <span id="col">1</span></span>
-      <span>Spaces: 2</span>
-      <span>JavaScript</span>
-    </div>
+    <span id="statusFile">No file</span>
+    <span>UTF-8</span>
   </div>
 
-  <script>
-    // 🔑 مفتاح Mistral API
-    const MISTRAL_API_KEY = "fkU26zoB0QlbqfaV79jKfm098kO4EJcy";
+<script>
+  // 🔥 مفتاح Mistral API
+  const MISTRAL_API_KEY = "fkU26zoB0QlbqfaV79jKfm098kO4EJcy";
 
-    const files = {
-      "index.html": "<!DOCTYPE html>\\n<html>\\n  <head>\\n    <meta charset=\\"UTF-8\\">\\n    <title>My App</title>\\n  </head>\\n  <body>\\n    <h1>Hello from Web VS Code</h1>\\n  </body>\\n</html>",
-      "main.js": "console.log('Hello from main.js');",
-      "style.css": "body {\\n  background:#111;\\n  color:#fff;\\n  font-family:sans-serif;\\n}"
-    };
-    let currentFile = null;
+  const files = {
+    "index.html": "<h1>Hello</h1>",
+    "main.js": "console.log('Hello');",
+    "style.css": "body{background:#111;color:#fff}"
+  };
+  let currentFile = null;
 
-    const filesListEl = document.getElementById('filesList');
-    const tabsEl = document.getElementById('tabs');
-    const editorEl = document.getElementById('editor');
-    const gutterEl = document.getElementById('gutter');
-    const statusFileEl = document.getElementById('statusFile');
-    const lnEl = document.getElementById('ln');
-    const colEl = document.getElementById('col');
-    const newFileBtn = document.getElementById('newFileBtn');
+  const filesListEl = document.getElementById('filesList');
+  const tabsEl = document.getElementById('tabs');
+  const editorEl = document.getElementById('editor');
+  const gutterEl = document.getElementById('gutter');
+  const statusFileEl = document.getElementById('statusFile');
 
-    const chatEl = document.getElementById('chat');
-    const chatInputEl = document.getElementById('chatInput');
-    const sendChatBtn = document.getElementById('sendChatBtn');
+  const chatEl = document.getElementById('chat');
+  const chatInputEl = document.getElementById('chatInput');
+  const sendChatBtn = document.getElementById('sendChatBtn');
 
-    function renderFiles(){
-      filesListEl.innerHTML = '';
-      Object.keys(files).forEach(name=>{
-        const item = document.createElement('div');
-        item.className = 'file-item' + (name === currentFile ? ' active' : '');
-        const icon = document.createElement('span');
-        icon.textContent = '📄';
-        const label = document.createElement('span');
-        label.textContent = name;
-        item.appendChild(icon);
-        item.appendChild(label);
-        item.onclick = ()=>openFile(name);
-        filesListEl.appendChild(item);
-      });
-    }
-
-    function renderTabs(){
-      tabsEl.innerHTML = '';
-      Object.keys(files).forEach(name=>{
-        const tab = document.createElement('div');
-        tab.className = 'tab' + (name === currentFile ? ' active' : '');
-        tab.textContent = name;
-        tab.onclick = ()=>openFile(name);
-        tabsEl.appendChild(tab);
-      });
-    }
-
-    function updateGutter(){
-      const lines = editorEl.value.split('\\n').length;
-      let html = '';
-      for(let i=1;i<=lines;i++) html += i + '\\n';
-      gutterEl.textContent = html;
-    }
-
-    function updateCursorPos(){
-      const pos = editorEl.selectionStart;
-      const text = editorEl.value.slice(0,pos);
-      const lines = text.split('\\n');
-      const line = lines.length;
-      const col = lines[lines.length-1].length + 1;
-      lnEl.textContent = line;
-      colEl.textContent = col;
-    }
-
-    function openFile(name){
-      if(currentFile){
-        files[currentFile] = editorEl.value;
-      }
-      currentFile = name;
-      editorEl.value = files[name];
-      statusFileEl.textContent = name;
-      renderFiles();
-      renderTabs();
-      updateGutter();
-      updateCursorPos();
-    }
-
-    newFileBtn.onclick = ()=>{
-      const name = prompt('اسم الملف الجديد (مثال: app.js):');
-      if(!name) return;
-      if(files[name]){
-        alert('يوجد ملف بنفس الاسم.');
-        return;
-      }
-      files[name] = '';
-      openFile(name);
-    };
-
-    editorEl.addEventListener('input', ()=>{
-      updateGutter();
-      updateCursorPos();
-      if(currentFile){
-        files[currentFile] = editorEl.value;
-      }
+  function renderFiles(){
+    filesListEl.innerHTML = '';
+    Object.keys(files).forEach(name=>{
+      const item = document.createElement('div');
+      item.className = 'file-item' + (name===currentFile?' active':'');
+      item.innerHTML = `<span>📄</span><span>${name}</span>`;
+      item.onclick = ()=>openFile(name);
+      filesListEl.appendChild(item);
     });
-    editorEl.addEventListener('click', updateCursorPos);
-    editorEl.addEventListener('keyup', updateCursorPos);
+  }
 
-    function addChatMessage(text, type){
-      const div = document.createElement('div');
-      div.className = 'msg ' + type;
-      div.textContent = text;
-      if(type === 'ai'){
-        const btn = document.createElement('button');
-        btn.className = 'copy-btn';
-        btn.textContent = 'نسخ';
-        btn.onclick = ()=>{
-          navigator.clipboard.writeText(text);
-          btn.textContent = '✓';
-          setTimeout(()=>btn.textContent='نسخ',1000);
-        };
-        div.appendChild(document.createElement('br'));
-        div.appendChild(btn);
-      }
-      chatEl.appendChild(div);
-      chatEl.scrollTop = chatEl.scrollHeight;
-    }
-
-    async function callMistral(prompt){
-      const messages = [];
-      messages.push({
-        role:"system",
-        content:"You are a coding assistant integrated in a VS Code-like web IDE. Answer concisely and focus on code."
-      });
-      if(currentFile){
-        messages.push({
-          role:"user",
-          content:"Current file name: " + currentFile + "\\nCurrent file content:\\n```\\n" + files[currentFile] + "\\n```"
-        });
-      }
-      messages.push({role:"user", content:prompt});
-
-      const res = await fetch("https://api.mistral.ai/v1/chat/completions",{
-        method:"POST",
-        headers:{
-          "Authorization":"Bearer " + MISTRAL_API_KEY,
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-          model:"mistral-large-latest",
-          messages
-        })
-      });
-      const data = await res.json();
-      return data.choices[0].message.content;
-    }
-
-    async function sendChat(){
-      const text = chatInputEl.value.trim();
-      if(!text) return;
-      addChatMessage(text,'user');
-      chatInputEl.value = '';
-      sendChatBtn.disabled = true;
-      try{
-        const reply = await callMistral(text);
-        addChatMessage(reply,'ai');
-      }catch(e){
-        addChatMessage("⚠️ حدث خطأ أثناء الاتصال بـ Mistral","system");
-      }
-      sendChatBtn.disabled = false;
-    }
-
-    sendChatBtn.onclick = sendChat;
-    chatInputEl.addEventListener('keydown',e=>{
-      if(e.key==='Enter' && !e.shiftKey){
-        e.preventDefault();
-        sendChat();
-      }
+  function renderTabs(){
+    tabsEl.innerHTML = '';
+    Object.keys(files).forEach(name=>{
+      const tab = document.createElement('div');
+      tab.className = 'tab' + (name===currentFile?' active':'');
+      tab.textContent = name;
+      tab.onclick = ()=>openFile(name);
+      tabsEl.appendChild(tab);
     });
+  }
 
-    // تهيئة
+  function updateGutter(){
+    const lines = editorEl.value.split('\n').length;
+    gutterEl.textContent = Array.from({length:lines},(_,i)=>i+1).join('\n');
+  }
+
+  function openFile(name){
+    if(currentFile){
+      files[currentFile] = editorEl.value;
+    }
+    currentFile = name;
+    editorEl.value = files[name];
+    statusFileEl.textContent = name;
     renderFiles();
     renderTabs();
-    openFile("index.html");
-  </script>
+    updateGutter();
+  }
+
+  editorEl.addEventListener('input', updateGutter);
+
+  // Chat
+  function addChatMessage(text,type){
+    const div = document.createElement('div');
+    div.className = 'msg ' + type;
+    div.textContent = text;
+
+    if(type==='ai'){
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = 'نسخ';
+      btn.onclick = ()=>{
+        navigator.clipboard.writeText(text);
+        btn.textContent = '✓';
+        setTimeout(()=>btn.textContent='نسخ',1000);
+      };
+      div.appendChild(document.createElement('br'));
+      div.appendChild(btn);
+    }
+
+    chatEl.appendChild(div);
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
+  async function callMistral(prompt){
+    const messages = [
+      {role:"system",content:"You are a coding assistant inside a VS Code-like IDE."}
+    ];
+
+    if(currentFile){
+      messages.push({
+        role:"user",
+        content:`Current file: ${currentFile}\nContent:\n${files[currentFile]}`
+      });
+    }
+
+    messages.push({role:"user",content:prompt});
+
+    const res = await fetch("https://api.mistral.ai/v1/chat/completions",{
+      method:"POST",
+      headers:{
+        "Authorization":"Bearer "+MISTRAL_API_KEY,
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        model:"mistral-large-latest",
+        messages
+      })
+    });
+
+    const data = await res.json();
+    return data.choices[0].message.content;
+  }
+
+  async function sendChat(){
+    const text = chatInputEl.value.trim();
+    if(!text) return;
+
+    addChatMessage(text,'user');
+    chatInputEl.value = '';
+    sendChatBtn.disabled = true;
+
+    try{
+      const reply = await callMistral(text);
+      addChatMessage(reply,'ai');
+    }catch(e){
+      addChatMessage("⚠️ خطأ أثناء الاتصال بـ Mistral","system");
+    }
+
+    sendChatBtn.disabled = false;
+  }
+
+  // إصلاح زر الإرسال
+  sendChatBtn.addEventListener("click", sendChat);
+
+  // إصلاح Enter
+  chatInputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendChat();
+    }
+  });
+
+  // Init
+  renderFiles();
+  renderTabs();
+  openFile("index.html");
+</script>
+
 </body>
 </html>
