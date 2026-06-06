@@ -2,97 +2,122 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>Chat – Mistral + ملفات مشروع</title>
+  <title>Web VS Code + Mistral Chat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     :root{
-      --bg-main:#050509;
-      --bg-chat:#111118;
-      --bg-user:#0b93f6;
-      --bg-ai:#1f1f28;
-      --text-main:#f5f5f7;
-      --text-muted:#a1a1a6;
-      --border:#222;
+      --bg-main:#1e1e1e;
+      --bg-sidebar:#252526;
+      --bg-editor:#1e1e1e;
+      --bg-panel:#202020;
+      --bg-chat:#1f2430;
+      --border:#333;
+      --accent:#007acc;
+      --text:#f3f3f3;
+      --text-muted:#9e9e9e;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
       background:var(--bg-main);
-      color:var(--text-main);
-      display:flex;
-      flex-direction:column;
+      color:var(--text);
       height:100vh;
-      overflow:hidden;
-    }
-    header{
-      padding:12px 16px;
-      border-bottom:1px solid var(--border);
-      text-align:center;
-      font-size:15px;
-      color:var(--text-muted);
-      position:relative;
-      z-index:20;
-      background:#050509;
-    }
-    .files-toggle{
-      position:absolute;
-      left:10px;
-      top:50%;
-      transform:translateY(-50%);
-      background:#1f1f28;
-      border:1px solid #333;
-      color:#fff;
-      border-radius:8px;
-      padding:4px 8px;
-      cursor:pointer;
-      font-size:14px;
-    }
-    .layout{
-      display:flex;
-      flex:1;
-      overflow:hidden;
-      position:relative;
-    }
-    /* السلايد الجانبي ثابت من اليسار */
-    .files-sidebar{
-      position:fixed;
-      top:48px; /* ارتفاع الهيدر تقريباً */
-      left:0;
-      width:260px;
-      height:calc(100vh - 48px);
-      background:#0b0b10;
-      border-right:1px solid var(--border);
-      padding:10px;
       display:flex;
       flex-direction:column;
-      gap:8px;
-      transform:translateX(-100%);
-      transition:0.25s ease;
-      z-index:10;
+      overflow:hidden;
     }
-    .files-sidebar.open{
-      transform:translateX(0);
-    }
-    .files-header{
-      font-size:14px;
+    /* شريط العنوان مثل VS Code */
+    .titlebar{
+      height:28px;
+      background:#3c3c3c;
+      display:flex;
+      align-items:center;
+      padding:0 10px;
+      font-size:12px;
       color:var(--text-muted);
-      margin-bottom:4px;
+      justify-content:space-between;
     }
-    #filesList{
+    .titlebar-left span{
+      margin-left:8px;
+    }
+    .titlebar-right{
+      display:flex;
+      gap:6px;
+      font-size:10px;
+    }
+    .titlebar-btn{
+      width:12px;height:12px;border-radius:50%;
+    }
+    .tb-red{background:#ff5f57}
+    .tb-yellow{background:#febc2e}
+    .tb-green{background:#28c840}
+
+    /* شريط القوائم */
+    .menubar{
+      height:24px;
+      background:#2d2d2d;
+      display:flex;
+      align-items:center;
+      padding:0 10px;
+      font-size:12px;
+      color:var(--text-muted);
+      gap:12px;
+    }
+
+    /* التخطيط الرئيسي */
+    .main{
+      flex:1;
+      display:flex;
+      overflow:hidden;
+    }
+
+    /* الشريط الجانبي الأيسر (Explorer) */
+    .activitybar{
+      width:40px;
+      background:#333333;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding-top:8px;
+      gap:10px;
+      font-size:18px;
+    }
+    .activity-icon{
+      cursor:pointer;
+      opacity:.7;
+    }
+    .activity-icon.active,
+    .activity-icon:hover{
+      opacity:1;
+      color:var(--accent);
+    }
+
+    .sidebar{
+      width:240px;
+      background:var(--bg-sidebar);
+      border-inline-end:1px solid var(--border);
+      display:flex;
+      flex-direction:column;
+    }
+    .sidebar-header{
+      padding:6px 10px;
+      font-size:11px;
+      text-transform:uppercase;
+      color:var(--text-muted);
+      border-bottom:1px solid var(--border);
+    }
+    .files-list{
       flex:1;
       overflow-y:auto;
-      border:1px solid #222;
-      border-radius:8px;
-      padding:4px;
-      font-size:13px;
+      font-size:12px;
+      padding:4px 0;
     }
     .file-item{
-      padding:6px 8px;
-      border-radius:6px;
+      padding:4px 10px;
       cursor:pointer;
       display:flex;
-      justify-content:space-between;
+      align-items:center;
       gap:6px;
     }
     .file-item span{
@@ -101,342 +126,441 @@
       white-space:nowrap;
     }
     .file-item:hover{
-      background:#1b1b24;
+      background:#2a2d2e;
     }
     .file-item.active{
-      background:#1f1f28;
-      border:1px solid #333;
+      background:#094771;
+      color:#fff;
     }
-    #filePreview{
-      margin-top:6px;
-      background:#111118;
-      border-radius:8px;
-      padding:8px;
-      font-size:12px;
-      max-height:150px;
-      overflow:auto;
-      direction:ltr;
-      text-align:left;
-      white-space:pre;
+    .sidebar-footer{
+      padding:6px 8px;
+      border-top:1px solid var(--border);
+      font-size:11px;
+      color:var(--text-muted);
+    }
+    .sidebar-footer button{
+      width:100%;
+      padding:4px 6px;
+      font-size:11px;
+      background:#0e639c;
+      border:none;
+      border-radius:3px;
+      color:#fff;
+      cursor:pointer;
     }
 
-    .chat-wrapper{
+    /* الوسط: التابات + المحرر */
+    .center{
       flex:1;
       display:flex;
       flex-direction:column;
-      height:100%;
-      margin-left:0; /* لأن السلايد ثابت */
+      background:var(--bg-editor);
+    }
+    .tabs{
+      height:28px;
+      display:flex;
+      background:#252526;
+      border-bottom:1px solid var(--border);
+      font-size:12px;
+    }
+    .tab{
+      padding:0 12px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      border-inline-end:1px solid #2d2d2d;
+      cursor:pointer;
+      color:var(--text-muted);
+    }
+    .tab.active{
+      background:#1e1e1e;
+      color:var(--text);
+      border-bottom:2px solid var(--accent);
+    }
+    .editor{
+      flex:1;
+      position:relative;
+      display:flex;
+    }
+    .editor textarea{
+      flex:1;
+      background:var(--bg-editor);
+      color:var(--text);
+      border:none;
+      padding:10px;
+      font-family:Consolas,monospace;
+      font-size:13px;
+      resize:none;
+      outline:none;
+      direction:ltr;
+      text-align:left;
+      line-height:1.5;
+    }
+    .gutter{
+      width:40px;
+      background:#252526;
+      color:var(--text-muted);
+      font-family:Consolas,monospace;
+      font-size:12px;
+      padding:10px 4px;
+      text-align:right;
+      user-select:none;
+    }
+
+    /* يمين: لوحة المحادثة */
+    .right-panel{
+      width:320px;
+      background:var(--bg-chat);
+      border-inline-start:1px solid var(--border);
+      display:flex;
+      flex-direction:column;
+    }
+    .right-header{
+      padding:6px 10px;
+      font-size:11px;
+      text-transform:uppercase;
+      color:var(--text-muted);
+      border-bottom:1px solid var(--border);
     }
     .chat-container{
       flex:1;
       overflow-y:auto;
-      padding:16px;
-      background:var(--bg-chat);
-    }
-    .message{
-      max-width:70%;
-      padding:10px 14px;
-      border-radius:14px;
-      margin-bottom:10px;
-      line-height:1.6;
-      font-size:14px;
-      white-space:pre-wrap;
-      position:relative;
-    }
-    .message.user{
-      margin-left:auto;
-      background:var(--bg-user);
-      color:#fff;
-      border-bottom-right-radius:4px;
-    }
-    .message.ai{
-      margin-right:auto;
-      background:var(--bg-ai);
-      border-bottom-left-radius:4px;
-    }
-    .message.system{
-      text-align:center;
-      margin:10px auto;
+      padding:10px;
       font-size:12px;
+    }
+    .msg{
+      margin-bottom:8px;
+      line-height:1.5;
+      white-space:pre-wrap;
+    }
+    .msg.user{
+      color:#c5e1ff;
+    }
+    .msg.ai{
+      color:#e5e5e5;
+    }
+    .msg.system{
       color:var(--text-muted);
-      background:transparent;
+      font-size:11px;
+      text-align:center;
+      margin:8px 0;
     }
     .copy-btn{
-      position:absolute;
-      top:6px;
-      left:-40px;
-      background:#2c2c2e;
-      color:#fff;
+      display:inline-block;
+      margin-top:2px;
+      padding:2px 6px;
+      font-size:10px;
+      border-radius:3px;
       border:none;
-      padding:4px 6px;
-      font-size:12px;
-      border-radius:6px;
+      background:#2d2f3a;
+      color:#fff;
       cursor:pointer;
-      opacity:0;
-      transition:0.2s;
     }
-    .message.ai:hover .copy-btn{
-      opacity:1;
-    }
-    .input-bar{
-      display:flex;
-      gap:8px;
-      padding:10px;
+    .chat-input{
       border-top:1px solid var(--border);
-      background:#050509;
+      padding:6px;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
     }
-    .input-bar textarea{
-      flex:1;
+    .chat-input textarea{
+      width:100%;
       resize:none;
-      padding:10px;
-      border-radius:10px;
-      border:1px solid #333;
-      background:#0c0c12;
-      color:#fff;
-      font-size:14px;
-      max-height:120px;
-    }
-    .input-bar button{
-      padding:0 18px;
-      border-radius:10px;
       border:none;
-      background:#0b93f6;
+      border-radius:3px;
+      padding:6px;
+      font-size:12px;
+      background:#151822;
       color:#fff;
-      font-size:14px;
+      outline:none;
+    }
+    .chat-input button{
+      align-self:flex-end;
+      padding:4px 10px;
+      font-size:11px;
+      border:none;
+      border-radius:3px;
+      background:var(--accent);
+      color:#fff;
       cursor:pointer;
     }
-    .input-bar button:disabled{
-      opacity:.5;
-      cursor:default;
+
+    /* شريط الحالة */
+    .statusbar{
+      height:22px;
+      background:#007acc;
+      color:#fff;
+      font-size:11px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 10px;
     }
-    @media(max-width:768px){
-      .message{max-width:90%}
+    .status-left span,
+    .status-right span{
+      margin-inline-end:10px;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    محادثة شبيهة بـ ChatGPT – مع ملفات مشروع
-    <button id="toggleFiles" class="files-toggle">📁 ملفات</button>
-  </header>
+  <!-- Title bar -->
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <span>Web VS Code – Mistral</span>
+    </div>
+    <div class="titlebar-right">
+      <div class="titlebar-btn tb-red"></div>
+      <div class="titlebar-btn tb-yellow"></div>
+      <div class="titlebar-btn tb-green"></div>
+    </div>
+  </div>
 
-  <div class="layout">
-    <!-- السلايد الجانبي للملفات -->
-    <aside id="filesSidebar" class="files-sidebar">
-      <div class="files-header">ملفات المشروع البرمجي</div>
-      <div id="filesList"></div>
-      <pre id="filePreview"></pre>
+  <!-- Menu bar -->
+  <div class="menubar">
+    <span>File</span>
+    <span>Edit</span>
+    <span>Selection</span>
+    <span>View</span>
+    <span>Go</span>
+    <span>Run</span>
+    <span>Help</span>
+  </div>
+
+  <!-- Main layout -->
+  <div class="main">
+
+    <!-- Activity bar -->
+    <div class="activitybar">
+      <div class="activity-icon active">📁</div>
+      <div class="activity-icon">🔍</div>
+      <div class="activity-icon">🐛</div>
+      <div class="activity-icon">⚙️</div>
+    </div>
+
+    <!-- Explorer sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">Explorer</div>
+      <div id="filesList" class="files-list"></div>
+      <div class="sidebar-footer">
+        <button id="newFileBtn">+ New File</button>
+      </div>
     </aside>
 
-    <!-- المحادثة -->
-    <div class="chat-wrapper">
-      <main id="chat" class="chat-container">
-        <div class="message system">
-          اكتب سؤالك عادي…  
-          وإذا أردت مشروع برمجي قل مثلاً:  
-          "كوّن لي مشروع موقع شخصي بـ HTML وCSS وJS"
-        </div>
-      </main>
-
-      <div class="input-bar">
-        <textarea id="input" rows="1" placeholder="اكتب هنا..."></textarea>
-        <button id="sendBtn">إرسال</button>
+    <!-- Center editor -->
+    <div class="center">
+      <div id="tabs" class="tabs"></div>
+      <div class="editor">
+        <div id="gutter" class="gutter"></div>
+        <textarea id="editor"></textarea>
       </div>
+    </div>
+
+    <!-- Right chat panel -->
+    <aside class="right-panel">
+      <div class="right-header">Mistral Assistant</div>
+      <div id="chat" class="chat-container">
+        <div class="msg system">اسأل عن الكود الحالي أو اطلب تعديلات…</div>
+      </div>
+      <div class="chat-input">
+        <textarea id="chatInput" rows="2" placeholder="اكتب سؤالك عن المشروع أو الملف الحالي..."></textarea>
+        <button id="sendChatBtn">إرسال للمساعد</button>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <div class="status-left">
+      <span id="statusFile">No file</span>
+      <span>UTF-8</span>
+    </div>
+    <div class="status-right">
+      <span>Ln <span id="ln">1</span>, Col <span id="col">1</span></span>
+      <span>Spaces: 2</span>
+      <span>JavaScript</span>
     </div>
   </div>
 
   <script>
-    const chat = document.getElementById('chat');
-    const input = document.getElementById('input');
-    const sendBtn = document.getElementById('sendBtn');
-    const toggleFilesBtn = document.getElementById('toggleFiles');
-    const filesSidebar = document.getElementById('filesSidebar');
-    const filesList = document.getElementById('filesList');
-    const filePreview = document.getElementById('filePreview');
-
-    // 🔑 ضع مفتاح Mistral API هنا
+    // 🔑 مفتاح Mistral API
     const MISTRAL_API_KEY = "fkU26zoB0QlbqfaV79jKfm098kO4EJcy";
 
-    const files = {};
+    const files = {
+      "index.html": "<!DOCTYPE html>\\n<html>\\n  <head>\\n    <meta charset=\\"UTF-8\\">\\n    <title>My App</title>\\n  </head>\\n  <body>\\n    <h1>Hello from Web VS Code</h1>\\n  </body>\\n</html>",
+      "main.js": "console.log('Hello from main.js');",
+      "style.css": "body {\\n  background:#111;\\n  color:#fff;\\n  font-family:sans-serif;\\n}"
+    };
     let currentFile = null;
 
-    function addMessage(text, type){
-      const div = document.createElement('div');
-      div.className = 'message ' + type;
-      div.textContent = text;
+    const filesListEl = document.getElementById('filesList');
+    const tabsEl = document.getElementById('tabs');
+    const editorEl = document.getElementById('editor');
+    const gutterEl = document.getElementById('gutter');
+    const statusFileEl = document.getElementById('statusFile');
+    const lnEl = document.getElementById('ln');
+    const colEl = document.getElementById('col');
+    const newFileBtn = document.getElementById('newFileBtn');
 
+    const chatEl = document.getElementById('chat');
+    const chatInputEl = document.getElementById('chatInput');
+    const sendChatBtn = document.getElementById('sendChatBtn');
+
+    function renderFiles(){
+      filesListEl.innerHTML = '';
+      Object.keys(files).forEach(name=>{
+        const item = document.createElement('div');
+        item.className = 'file-item' + (name === currentFile ? ' active' : '');
+        const icon = document.createElement('span');
+        icon.textContent = '📄';
+        const label = document.createElement('span');
+        label.textContent = name;
+        item.appendChild(icon);
+        item.appendChild(label);
+        item.onclick = ()=>openFile(name);
+        filesListEl.appendChild(item);
+      });
+    }
+
+    function renderTabs(){
+      tabsEl.innerHTML = '';
+      Object.keys(files).forEach(name=>{
+        const tab = document.createElement('div');
+        tab.className = 'tab' + (name === currentFile ? ' active' : '');
+        tab.textContent = name;
+        tab.onclick = ()=>openFile(name);
+        tabsEl.appendChild(tab);
+      });
+    }
+
+    function updateGutter(){
+      const lines = editorEl.value.split('\\n').length;
+      let html = '';
+      for(let i=1;i<=lines;i++) html += i + '\\n';
+      gutterEl.textContent = html;
+    }
+
+    function updateCursorPos(){
+      const pos = editorEl.selectionStart;
+      const text = editorEl.value.slice(0,pos);
+      const lines = text.split('\\n');
+      const line = lines.length;
+      const col = lines[lines.length-1].length + 1;
+      lnEl.textContent = line;
+      colEl.textContent = col;
+    }
+
+    function openFile(name){
+      if(currentFile){
+        files[currentFile] = editorEl.value;
+      }
+      currentFile = name;
+      editorEl.value = files[name];
+      statusFileEl.textContent = name;
+      renderFiles();
+      renderTabs();
+      updateGutter();
+      updateCursorPos();
+    }
+
+    newFileBtn.onclick = ()=>{
+      const name = prompt('اسم الملف الجديد (مثال: app.js):');
+      if(!name) return;
+      if(files[name]){
+        alert('يوجد ملف بنفس الاسم.');
+        return;
+      }
+      files[name] = '';
+      openFile(name);
+    };
+
+    editorEl.addEventListener('input', ()=>{
+      updateGutter();
+      updateCursorPos();
+      if(currentFile){
+        files[currentFile] = editorEl.value;
+      }
+    });
+    editorEl.addEventListener('click', updateCursorPos);
+    editorEl.addEventListener('keyup', updateCursorPos);
+
+    function addChatMessage(text, type){
+      const div = document.createElement('div');
+      div.className = 'msg ' + type;
+      div.textContent = text;
       if(type === 'ai'){
         const btn = document.createElement('button');
         btn.className = 'copy-btn';
-        btn.textContent = "نسخ";
-        btn.onclick = () => {
+        btn.textContent = 'نسخ';
+        btn.onclick = ()=>{
           navigator.clipboard.writeText(text);
-          btn.textContent = "✓";
-          setTimeout(() => btn.textContent = "نسخ", 1200);
+          btn.textContent = '✓';
+          setTimeout(()=>btn.textContent='نسخ',1000);
         };
+        div.appendChild(document.createElement('br'));
         div.appendChild(btn);
       }
-
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
+      chatEl.appendChild(div);
+      chatEl.scrollTop = chatEl.scrollHeight;
     }
 
-    function renderFilesList(){
-      filesList.innerHTML = '';
-      const names = Object.keys(files);
-      if(names.length === 0){
-        filesList.innerHTML = '<div style="padding:6px;color:#777;font-size:12px;">لا توجد ملفات بعد</div>';
-        filePreview.textContent = '';
-        return;
-      }
-      names.forEach(name=>{
-        const item = document.createElement('div');
-        item.className = 'file-item' + (currentFile === name ? ' active' : '');
-        const span = document.createElement('span');
-        span.textContent = name;
-        const size = document.createElement('span');
-        size.style.fontSize = '11px';
-        size.style.color = '#888';
-        size.textContent = files[name].length + 'b';
-        item.appendChild(span);
-        item.appendChild(size);
-        item.onclick = () => {
-          currentFile = name;
-          filePreview.textContent = files[name];
-          renderFilesList();
-        };
-        filesList.appendChild(item);
+    async function callMistral(prompt){
+      const messages = [];
+      messages.push({
+        role:"system",
+        content:"You are a coding assistant integrated in a VS Code-like web IDE. Answer concisely and focus on code."
       });
-      if(currentFile && files[currentFile]){
-        filePreview.textContent = files[currentFile];
-      }
-    }
-
-    function addFile(name, content){
-      files[name] = content;
-      currentFile = name;
-      renderFilesList();
-    }
-
-    async function sendToMistralNormal(userText){
-      const url = "https://api.mistral.ai/v1/chat/completions";
-      const body = {
-        model: "mistral-large-latest",
-        messages: [
-          { role: "user", content: userText }
-        ]
-      };
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer " + MISTRAL_API_KEY,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      return data.choices[0].message.content;
-    }
-
-    async function sendToMistralProject(userText){
-      const url = "https://api.mistral.ai/v1/chat/completions";
-      const body = {
-        model: "mistral-large-latest",
-        messages: [
-          {
-            role: "system",
-            content:
-`You are a code project generator.
-Respond ONLY with valid JSON in this exact shape:
-
-{
-  "files": [
-    { "name": "index.html", "content": "<!DOCTYPE html>..." },
-    { "name": "style.css", "content": "body { ... }" }
-  ]
-}
-
-No explanations, no markdown, no extra text.`
-          },
-          { role: "user", content: userText }
-        ]
-      };
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer " + MISTRAL_API_KEY,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      return data.choices[0].message.content;
-    }
-
-    async function handleProjectFlow(text){
-      try{
-        const raw = await sendToMistralProject(text);
-        let json;
-        try{
-          json = JSON.parse(raw);
-        }catch(e){
-          addMessage("⚠️ تعذر فهم استجابة المشروع (ليست JSON صالحة).", "ai");
-          return;
-        }
-        if(!json.files || !Array.isArray(json.files) || json.files.length === 0){
-          addMessage("⚠️ لم يتم العثور على ملفات في استجابة النموذج.", "ai");
-          return;
-        }
-        json.files.forEach(file=>{
-          const name = file.name || "unnamed.txt";
-          const content = file.content || "";
-          addFile(name, content);
-          addMessage("ملف: " + name + "\n\n" + content, "ai");
+      if(currentFile){
+        messages.push({
+          role:"user",
+          content:"Current file name: " + currentFile + "\\nCurrent file content:\\n```\\n" + files[currentFile] + "\\n```"
         });
-      }catch(e){
-        addMessage("⚠️ حدث خطأ أثناء توليد المشروع.", "ai");
       }
+      messages.push({role:"user", content:prompt});
+
+      const res = await fetch("https://api.mistral.ai/v1/chat/completions",{
+        method:"POST",
+        headers:{
+          "Authorization":"Bearer " + MISTRAL_API_KEY,
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          model:"mistral-large-latest",
+          messages
+        })
+      });
+      const data = await res.json();
+      return data.choices[0].message.content;
     }
 
-    async function send(){
-      const text = input.value.trim();
+    async function sendChat(){
+      const text = chatInputEl.value.trim();
       if(!text) return;
-
-      addMessage(text, 'user');
-      input.value = '';
-      sendBtn.disabled = true;
-
-      const isProject =
-        text.includes("مشروع") ||
-        text.includes("project") ||
-        (text.includes("موقع") && text.includes("كامل"));
-
-      if(isProject){
-        await handleProjectFlow(text);
-      }else{
-        try{
-          const reply = await sendToMistralNormal(text);
-          addMessage(reply, 'ai');
-        }catch(e){
-          addMessage("⚠️ حدث خطأ أثناء الاتصال بـ Mistral", "ai");
-        }
+      addChatMessage(text,'user');
+      chatInputEl.value = '';
+      sendChatBtn.disabled = true;
+      try{
+        const reply = await callMistral(text);
+        addChatMessage(reply,'ai');
+      }catch(e){
+        addChatMessage("⚠️ حدث خطأ أثناء الاتصال بـ Mistral","system");
       }
-
-      sendBtn.disabled = false;
+      sendChatBtn.disabled = false;
     }
 
-    sendBtn.onclick = send;
-    input.addEventListener('keydown', e=>{
-      if(e.key === 'Enter' && !e.shiftKey){
+    sendChatBtn.onclick = sendChat;
+    chatInputEl.addEventListener('keydown',e=>{
+      if(e.key==='Enter' && !e.shiftKey){
         e.preventDefault();
-        send();
+        sendChat();
       }
     });
 
-    toggleFilesBtn.onclick = () => {
-      filesSidebar.classList.toggle('open');
-    };
+    // تهيئة
+    renderFiles();
+    renderTabs();
+    openFile("index.html");
   </script>
 </body>
 </html>
