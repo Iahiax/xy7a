@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>مساعد برمجي – Mistral Chat IDE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Prism.js (تلوين الأكواد) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-go.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rust.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-swift.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-alt: #0b1020;
+      --accent: #4f46e5;
+      --accent-soft: rgba(79, 70, 229, 0.15);
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --danger: #f97373;
+      --border: #1f2933;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #111827 0, #020617 45%, #000 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 16px;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(15, 23, 42, 0.9));
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.8);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    header h1 span.logo {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: radial-gradient(circle at 20% 20%, #a855f7, #4f46e5);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .top-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+      align-items: center;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 2fr 1.4fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      backdrop-filter: blur(18px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: #c7d2fe;
+      border: 1px solid rgba(129, 140, 248, 0.4);
+    }
+
+    .small {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .chat-window {
+      background: #020617;
+      border-radius: var(--radius-md);
+      border: 1px solid #111827;
+      padding: 10px;
+      height: 360px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      scroll-behavior: smooth;
+    }
+
+    .msg {
+      max-width: 90%;
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: #e5e7eb;
+      border-bottom-right-radius: 2px;
+    }
+
+    .msg.assistant {
+      align-self: flex-start;
+      background: #020617;
+      border: 1px solid #111827;
+      border-bottom-left-radius: 2px;
+    }
+
+    .msg.system {
+      align-self: center;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 999px;
+      padding-inline: 14px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .input-area {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 70px;
+      max-height: 160px;
+      resize: vertical;
+      border-radius: var(--radius-md);
+      border: 1px solid #111827;
+      background: #020617;
+      color: var(--text);
+      padding: 8px 10px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.5);
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 7px 14px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease;
+    }
+
+    button.secondary {
+      background: #020617;
+      color: var(--muted);
+      border: 1px solid #111827;
+    }
+
+    button.danger {
+      background: #1f2937;
+      color: #fecaca;
+      border: 1px solid rgba(248, 113, 113, 0.6);
+    }
+
+    button:active {
+      transform: scale(0.97);
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.4);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+    }
+
+    input[type="file"] {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid #111827;
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .slider-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+
+    input[type="range"] {
+      accent-color: var(--accent);
+    }
+
+    .code-preview {
+      background: #020617;
+      border-radius: var(--radius-md);
+      border: 1px dashed #1f2937;
+      padding: 8px;
+      max-height: 150px;
+      overflow: auto;
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.75rem;
+    }
+
+    .status {
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .status span.error {
+      color: var(--danger);
+    }
+
+    .ai-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ai-output {
+      background: #020617;
+      border-radius: var(--radius-md);
+      border: 1px solid #111827;
+      padding: 10px;
+      min-height: 120px;
+      font-size: 0.8rem;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-y: auto;
+      max-height: 260px;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid #111827;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .tag:hover {
+      border-color: var(--accent);
+      color: #e5e7eb;
+    }
+
+    select {
+      background: #020617;
+      color: var(--muted);
+      border-radius: 999px;
+      border: 1px solid #111827;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+    }
+
+    footer {
+      margin-top: 4px;
+      padding: 6px 4px 10px;
+      text-align: center;
+      font-size: 0.7rem;
+      color: #4b5563;
+    }
+
+    .session-pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid #111827;
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .run-output {
+      background: #020617;
+      border-radius: var(--radius-md);
+      border: 1px solid #111827;
+      padding: 8px;
+      font-size: 0.75rem;
+      max-height: 120px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>
+        <span class="logo">AI</span>
+        مساعد برمجي متقدم – Mistral Chat IDE
+      </h1>
+      <p>
+        واجهة دردشة موجهة للبرمجة: تحليل أكواد، تحسين، توثيق، تحويل لغات، تشغيل JavaScript، جلسات متعددة، وتلوين كود.
+      </p>
+
+      <div class="top-controls">
+        <span class="session-pill">
+          الجلسة:
+          <select id="sessionSelect"></select>
+          <button id="newSessionBtn" class="secondary" style="padding-inline:8px;">➕ جديدة</button>
+          <button id="deleteSessionBtn" class="danger" style="padding-inline:8px;">🗑 حذف</button>
+        </span>
+
+        <span class="session-pill">
+          لغة البرمجة:
+          <select id="languageSelect">
+            <option value="javascript" selected>JavaScript</option>
+            <option value="python">Python</option>
+            <option value="c">C</option>
+            <option value="cpp">C++</option>
+            <option value="java">Java</option>
+            <option value="csharp">C#</option>
+            <option value="php">PHP</option>
+            <option value="go">Go</option>
+            <option value="rust">Rust</option>
+            <option value="kotlin">Kotlin</option>
+            <option value="swift">Swift</option>
+            <option value="html">HTML</option>
+            <option value="css">CSS</option>
+            <option value="json">JSON</option>
+            <option value="yaml">YAML</option>
+          </select>
+        </span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- قسم المحادثة -->
+      <section class="card">
+        <div class="card-header">
+          <h2>
+            🧠 المحادثة
+            <span class="badge">مخصص للبرمجة</span>
+          </h2>
+          <div class="small">
+            النموذج: <span id="modelName">mistral-large-latest</span>
+          </div>
+        </div>
+
+        <div id="chatWindow" class="chat-window">
+          <div class="msg system">
+            تم تهيئة المساعد ليكون خبيرًا في البرمجة وتحليل الأكواد.
+          </div>
+        </div>
+
+        <div class="input-area">
+          <textarea id="userInput" placeholder="اكتب سؤالك البرمجي هنا... مثال: حل مشكلة في كود أو تحسين أداء دالة"></textarea>
+
+          <div class="row">
+            <button id="sendBtn">🚀 إرسال</button>
+            <button id="clearBtn" class="secondary">🧹 مسح المحادثة</button>
+            <button id="exportBtn" class="secondary">💾 حفظ المحادثة (JSON)</button>
+          </div>
+
+          <div class="row">
+            <label class="pill">
+              🔥 درجة الإبداع (temperature)
+              <input id="tempSlider" type="range" min="0" max="100" value="20" />
+              <span id="tempValue">0.2</span>
+            </label>
+
+            <div class="slider-group">
+              <span>وضع:</span>
+              <button type="button" class="secondary" id="modeStrictBtn">تحليل صارم</button>
+              <button type="button" class="secondary" id="modeHelperBtn">مساعد مرن</button>
+            </div>
+          </div>
+
+          <div class="status">
+            <span id="statusText">جاهز.</span>
+            <span id="errorText" class="error"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- قسم الذكاء الاصطناعي + الملفات + تشغيل الكود + Gist -->
+      <section class="card">
+        <div class="card-header">
+          <h2>🤖 رد الذكاء الاصطناعي & الملفات & التشغيل</h2>
+          <span class="small">تحليل أكواد – تحسين – توثيق – تشغيل JS – رفع Gist</span>
+        </div>
+
+        <div class="ai-panel">
+          <div class="tag-row">
+            <span class="tag" data-snippet="حلل هذا الكود وابحث عن الأخطاء المحتملة وطرق تحسين الأداء:">تحليل أخطاء</span>
+            <span class="tag" data-snippet="اقترح إعادة هيكلة للكود مع أفضل ممارسات التصميم (clean code):">تحسين الكود</span>
+            <span class="tag" data-snippet="اكتب لي توثيق (documentation) واضح لهذا الكود مع أمثلة استخدام:">توثيق الكود</span>
+            <span class="tag" data-snippet="حوّل هذا الكود من اللغة الحالية إلى لغة أخرى مع شرح الفروقات:">تحويل لغة</span>
+          </div>
+
+          <div>
+            <label class="small">📂 تحميل ملف كود (اختياري):</label>
+            <input id="fileInput" type="file" accept=".js,.ts,.py,.java,.cpp,.c,.cs,.php,.rb,.go,.rs,.kt,.swift,.html,.css,.json,.yml,.yaml,.sh,.bat,.ps1,.txt" />
+          </div>
+
+          <pre id="filePreviewWrapper" class="code-preview" style="display:none;"><code id="filePreview" class="language-javascript"></code></pre>
+
+          <div class="ai-output" id="aiOutput">
+            هنا سيظهر رد الذكاء الاصطناعي بشكل منسق مع التركيز على البرمجة.
+          </div>
+
+          <div class="row">
+            <button id="copyAnswerBtn" class="secondary">📋 نسخ الرد</button>
+            <button id="downloadAnswerBtn" class="secondary">⬇️ تحميل الرد كملف</button>
+            <button id="gistBtn" class="secondary">☁️ رفع إلى GitHub Gist</button>
+          </div>
+
+          <div class="row">
+            <button id="runJsBtn" class="secondary">▶️ تشغيل JavaScript</button>
+          </div>
+
+          <div class="run-output" id="runOutput" style="display:none;"></div>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      واجهة تجريبية لمساعد برمجي مبني على Mistral – يمكنك تعديلها وتطويرها كما تحب.
+    </footer>
+  </div>
+
+  <script>
+    // ========== إعدادات عامة ==========
+    // بناءً على طلبك: استخدام المفتاح مباشرة في الواجهة
+    const MISTRAL_API_KEY = "fkU26zoB0QlbqfaV79jKfm098kO4EJcy";
+    const MISTRAL_ENDPOINT = "https://api.mistral.ai/v1/chat/completions";
+    const MISTRAL_MODEL = "mistral-large-latest";
+
+    const chatWindow = document.getElementById("chatWindow");
+    const userInput = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const exportBtn = document.getElementById("exportBtn");
+    const statusText = document.getElementById("statusText");
+    const errorText = document.getElementById("errorText");
+    const tempSlider = document.getElementById("tempSlider");
+    const tempValue = document.getElementById("tempValue");
+    const aiOutput = document.getElementById("aiOutput");
+    const fileInput = document.getElementById("fileInput");
+    const filePreviewWrapper = document.getElementById("filePreviewWrapper");
+    const filePreview = document.getElementById("filePreview");
+    const copyAnswerBtn = document.getElementById("copyAnswerBtn");
+    const downloadAnswerBtn = document.getElementById("downloadAnswerBtn");
+    const modeStrictBtn = document.getElementById("modeStrictBtn");
+    const modeHelperBtn = document.getElementById("modeHelperBtn");
+    const languageSelect = document.getElementById("languageSelect");
+    const sessionSelect = document.getElementById("sessionSelect");
+    const newSessionBtn = document.getElementById("newSessionBtn");
+    const deleteSessionBtn = document.getElementById("deleteSessionBtn");
+    const runJsBtn = document.getElementById("runJsBtn");
+    const runOutput = document.getElementById("runOutput");
+    const gistBtn = document.getElementById("gistBtn");
+
+    let sessions = {};
+    let currentSessionId = null;
+    let lastAssistantText = "";
+    let currentMode = "strict"; // strict | helper
+
+    // ========== إدارة الجلسات (Sessions) ==========
+    function loadSessionsFromStorage() {
+      try {
+        const raw = localStorage.getItem("mistral_sessions");
+        if (raw) {
+          sessions = JSON.parse(raw);
+        } else {
+          sessions = {};
+        }
+      } catch {
+        sessions = {};
+      }
+
+      if (Object.keys(sessions).length === 0) {
+        const id = "جلسة 1";
+        sessions[id] = { conversation: [] };
+        currentSessionId = id;
+        saveSessionsToStorage();
+      } else if (!currentSessionId) {
+        currentSessionId = Object.keys(sessions)[0];
+      }
+
+      refreshSessionSelect();
+    }
+
+    function saveSessionsToStorage() {
+      localStorage.setItem("mistral_sessions", JSON.stringify(sessions));
+    }
+
+    function refreshSessionSelect() {
+      sessionSelect.innerHTML = "";
+      Object.keys(sessions).forEach(id => {
+        const opt = document.createElement("option");
+        opt.value = id;
+        opt.textContent = id;
+        if (id === currentSessionId) opt.selected = true;
+        sessionSelect.appendChild(opt);
+      });
+      renderConversation();
+    }
+
+    function createNewSession() {
+      const base = "جلسة";
+      let idx = Object.keys(sessions).length + 1;
+      let id = base + " " + idx;
+      while (sessions[id]) {
+        idx++;
+        id = base + " " + idx;
+      }
+      sessions[id] = { conversation: [] };
+      currentSessionId = id;
+      saveSessionsToStorage();
+      refreshSessionSelect();
+    }
+
+    function deleteCurrentSession() {
+      if (!currentSessionId) return;
+      if (Object.keys(sessions).length === 1) {
+        // لا نحذف آخر جلسة، فقط نفرغها
+        sessions[currentSessionId].conversation = [];
+      } else {
+        delete sessions[currentSessionId];
+        currentSessionId = Object.keys(sessions)[0] || null;
+      }
+      saveSessionsToStorage();
+      refreshSessionSelect();
+    }
+
+    sessionSelect.addEventListener("change", () => {
+      currentSessionId = sessionSelect.value;
+      renderConversation();
+    });
+
+    newSessionBtn.addEventListener("click", createNewSession);
+    deleteSessionBtn.addEventListener("click", deleteCurrentSession);
+
+    function getCurrentConversation() {
+      if (!currentSessionId || !sessions[currentSessionId]) {
+        return [];
+      }
+      return sessions[currentSessionId].conversation;
+    }
+
+    function setCurrentConversation(conv) {
+      if (!currentSessionId) return;
+      sessions[currentSessionId].conversation = conv;
+      saveSessionsToStorage();
+    }
+
+    // ========== شخصية المساعد ==========
+    function getSystemPrompt() {
+      const lang = languageSelect.value;
+      const langLabel = languageSelect.options[languageSelect.selectedIndex].text;
+      if (currentMode === "strict") {
+        return `أنت مساعد برمجي خبير. ركّز على اكتشاف الأخطاء، المخاطر الأمنية، وتحسين الأداء. لغة البرمجة الأساسية: ${langLabel}. قدّم حلولًا دقيقة ومختصرة مع أمثلة كود واضحة.`;
+      } else {
+        return `أنت مساعد برمجي خبير بأسلوب تعليمي. اشرح الخطوات بالتفصيل، وقدّم أفضل ممارسات، مع أمثلة كود وتعليقات توضيحية. لغة البرمجة الأساسية: ${langLabel}.`;
+      }
+    }
+
+    // ========== واجهة المستخدم ==========
+    function appendMessageToUI(role, content) {
+      const msg = document.createElement("div");
+      msg.classList.add("msg", role);
+      msg.textContent = content;
+      chatWindow.appendChild(msg);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function renderConversation() {
+      chatWindow.innerHTML = "";
+      appendMessageToUI("system", "تم تهيئة المساعد ليكون خبيرًا في البرمجة وتحليل الأكواد.");
+      const conv = getCurrentConversation();
+      for (const msg of conv) {
+        appendMessageToUI(msg.role, msg.content);
+      }
+    }
+
+    function setStatus(text) {
+      statusText.textContent = text;
+    }
+
+    function setError(text) {
+      errorText.textContent = text || "";
+    }
+
+    tempSlider.addEventListener("input", () => {
+      const val = (tempSlider.value / 100).toFixed(2);
+      tempValue.textContent = val;
+    });
+
+    modeStrictBtn.addEventListener("click", () => {
+      currentMode = "strict";
+      modeStrictBtn.classList.remove("secondary");
+      modeStrictBtn.style.background = "#4f46e5";
+      modeStrictBtn.style.color = "#fff";
+      modeHelperBtn.classList.add("secondary");
+      modeHelperBtn.style.background = "#020617";
+      modeHelperBtn.style.color = "#9ca3af";
+      appendMessageToUI("system", "تم تفعيل وضع التحليل الصارم للكود.");
+    });
+
+    modeHelperBtn.addEventListener("click", () => {
+      currentMode = "helper";
+      modeHelperBtn.classList.remove("secondary");
+      modeHelperBtn.style.background = "#4f46e5";
+      modeHelperBtn.style.color = "#fff";
+      modeStrictBtn.classList.add("secondary");
+      modeStrictBtn.style.background = "#020617";
+      modeStrictBtn.style.color = "#9ca3af";
+      appendMessageToUI("system", "تم تفعيل وضع المساعد التعليمي المرن.");
+    });
+
+    // تفعيل الوضع الافتراضي
+    modeStrictBtn.click();
+
+    // ========== التعامل مع الملفات + تلوين الكود ==========
+    fileInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) {
+        filePreviewWrapper.style.display = "none";
+        filePreview.textContent = "";
+        return;
+      }
+
+      const text = await file.text();
+      const snippet = text.slice(0, 2000);
+      const lang = languageSelect.value;
+      filePreview.className = "language-" + mapLangToPrism(lang);
+      filePreview.textContent = snippet || "// الملف فارغ أو غير قابل للقراءة";
+      filePreviewWrapper.style.display = "block";
+      Prism.highlightAll();
+    });
+
+    function mapLangToPrism(lang) {
+      switch (lang) {
+        case "csharp": return "csharp";
+        case "cpp": return "cpp";
+        case "html": return "markup";
+        default: return lang;
+      }
+    }
+
+    // ========== استدعاء Mistral ==========
+    async function callMistralAPI(userMessage, fileCode) {
+      const temperature = parseFloat(tempValue.textContent);
+      const conv = getCurrentConversation();
+
+      const messages = [
+        { role: "system", content: getSystemPrompt() }
+      ];
+
+      for (const msg of conv) {
+        messages.push({ role: msg.role, content: msg.content });
+      }
+
+      let finalUserContent = userMessage;
+      if (fileCode) {
+        finalUserContent += "\n\n---\nالكود المرفق:\n```" + languageSelect.value + "\n" + fileCode.slice(0, 6000) + "\n```";
+      }
+
+      messages.push({ role: "user", content: finalUserContent });
+
+      const body = {
+        model: MISTRAL_MODEL,
+        messages,
+        temperature,
+        max_tokens: 1024,
+        stream: false
+      };
+
+      const res = await fetch(MISTRAL_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + MISTRAL_API_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error("HTTP " + res.status + ": " + text);
+      }
+
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content || "لم أستطع توليد رد مناسب.";
+      return content;
+    }
+
+    // ========== إرسال الرسالة ==========
+    async function handleSend() {
+      setError("");
+      const text = userInput.value.trim();
+      if (!text) {
+        setError("الرجاء كتابة سؤال أو وصف للمشكلة البرمجية.");
+        return;
+      }
+
+      let fileCode = null;
+      const file = fileInput.files[0];
+      if (file) {
+        try {
+          fileCode = await file.text();
+        } catch (e) {
+          console.error(e);
+          setError("تعذر قراءة ملف الكود.");
+        }
+      }
+
+      sendBtn.disabled = true;
+      setStatus("جارٍ إرسال الطلب إلى Mistral...");
+      appendMessageToUI("user", text);
+
+      const conv = getCurrentConversation();
+      conv.push({ role: "user", content: text });
+      setCurrentConversation(conv);
+      userInput.value = "";
+
+      try {
+        const answer = await callMistralAPI(text, fileCode);
+        lastAssistantText = answer;
+        appendMessageToUI("assistant", answer);
+        aiOutput.innerHTML = renderMarkdownCode(answer);
+        const updatedConv = getCurrentConversation();
+        updatedConv.push({ role: "assistant", content: answer });
+        setCurrentConversation(updatedConv);
+        setStatus("تم استلام الرد.");
+        Prism.highlightAll();
+      } catch (err) {
+        console.error(err);
+        setError("حدث خطأ أثناء الاتصال بـMistral. تحقق من المفتاح أو الاتصال بالإنترنت.");
+        setStatus("فشل الطلب.");
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    sendBtn.addEventListener("click", handleSend);
+    userInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    });
+
+    // ========== مسح المحادثة ==========
+    clearBtn.addEventListener("click", () => {
+      const conv = [];
+      setCurrentConversation(conv);
+      renderConversation();
+      aiOutput.textContent = "هنا سيظهر رد الذكاء الاصطناعي بشكل منسق مع التركيز على البرمجة.";
+      setStatus("جاهز.");
+      setError("");
+    });
+
+    // ========== حفظ المحادثة كـJSON ==========
+    exportBtn.addEventListener("click", () => {
+      const data = {
+        model: MISTRAL_MODEL,
+        mode: currentMode,
+        temperature: parseFloat(tempValue.textContent),
+        language: languageSelect.value,
+        sessions
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "mistral-chat-sessions.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // ========== نسخ الرد ==========
+    copyAnswerBtn.addEventListener("click", async () => {
+      if (!lastAssistantText) return;
+      try {
+        await navigator.clipboard.writeText(lastAssistantText);
+        setStatus("تم نسخ الرد إلى الحافظة.");
+      } catch {
+        setError("تعذر نسخ النص، قد تحتاج لإعطاء صلاحية الوصول للحافظة.");
+      }
+    });
+
+    // ========== تحميل الرد كملف ==========
+    downloadAnswerBtn.addEventListener("click", () => {
+      if (!lastAssistantText) return;
+      const blob = new Blob([lastAssistantText], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ai-answer.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // ========== Tags الجاهزة ==========
+    document.querySelectorAll(".tag").forEach(tag => {
+      tag.addEventListener("click", () => {
+        const snippet = tag.getAttribute("data-snippet") || "";
+        userInput.value = snippet + "\n\n";
+        userInput.focus();
+      });
+    });
+
+    // ========== تشغيل JavaScript ==========
+    runJsBtn.addEventListener("click", () => {
+      const lang = languageSelect.value;
+      if (lang !== "javascript") {
+        setError("تشغيل الكود متاح حاليًا لـ JavaScript فقط.");
+        return;
+      }
+      setError("");
+      let code = "";
+
+      // نحاول أخذ الكود من الملف، وإذا ما فيه، من آخر رد
+      if (fileInput.files[0] && filePreview.textContent.trim()) {
+        code = filePreview.textContent;
+      } else if (lastAssistantText) {
+        const match = lastAssistantText.match(/```(?:javascript|js)?\s*([\s\S]*?)```/i);
+        if (match) {
+          code = match[1];
+        } else {
+          code = lastAssistantText;
+        }
+      } else {
+        setError("لا يوجد كود لتشغيله.");
+        return;
+      }
+
+      runOutput.style.display = "block";
+      runOutput.textContent = "تشغيل الكود...\n";
+      try {
+        const result = eval(code);
+        runOutput.textContent += "النتيجة:\n" + String(result);
+      } catch (e) {
+        runOutput.textContent += "خطأ أثناء التنفيذ:\n" + e.toString();
+      }
+    });
+
+    // ========== رفع إلى GitHub Gist (بدون توثيق) ==========
+    gistBtn.addEventListener("click", async () => {
+      setError("");
+      let content = "";
+
+      if (fileInput.files[0] && filePreview.textContent.trim()) {
+        content = filePreview.textContent;
+      } else if (lastAssistantText) {
+        content = lastAssistantText;
+      } else {
+        setError("لا يوجد محتوى لرفعه إلى Gist.");
+        return;
+      }
+
+      setStatus("جارٍ إنشاء Gist (بدون توثيق)...");
+      try {
+        const res = await fetch("https://api.github.com/gists", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            description: "Generated by Mistral Chat IDE",
+            public: false,
+            files: {
+              "code.txt": {
+                content
+              }
+            }
+          })
+        });
+
+        if (!res.ok) {
+          const t = await res.text();
+          throw new Error("HTTP " + res.status + ": " + t);
+        }
+
+        const data = await res.json();
+        const url = data.html_url;
+        setStatus("تم إنشاء Gist: " + url);
+      } catch (e) {
+        console.error(e);
+        setError("تعذر إنشاء Gist. قد يكون هناك حد من GitHub أو مشكلة اتصال.");
+        setStatus("فشل إنشاء Gist.");
+      }
+    });
+
+    // ========== تحويل Markdown بسيط مع كود إلى HTML مع Prism ==========
+    function renderMarkdownCode(text) {
+      // نحول كتل الكود ```lang ... ``` إلى <pre><code class="language-lang">...</code></pre>
+      return text.replace(/```(\w+)?\s*([\s\S]*?)```/g, (match, lang, code) => {
+        const prismLang = mapLangToPrism((lang || languageSelect.value || "javascript").toLowerCase());
+        const escaped = code.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        return `<pre class="language-${prismLang}"><code class="language-${prismLang}">${escaped}</code></pre>`;
+      }).replace(/\n/g, "<br>");
+    }
+
+    // ========== تهيئة أولية ==========
+    loadSessionsFromStorage();
+    aiOutput.textContent = "هنا سيظهر رد الذكاء الاصطناعي بشكل منسق مع التركيز على البرمجة.";
+  </script>
+</body>
+</html>
