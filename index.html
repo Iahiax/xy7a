@@ -2,30 +2,137 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>ChatGPT Style – Mistral API</title>
+  <title>ChatGPT Style – Mistral Project Chat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    :root{
+      --bg-main:#050509;
+      --bg-chat:#111118;
+      --bg-user:#0b93f6;
+      --bg-ai:#1f1f28;
+      --text-main:#f5f5f7;
+      --text-muted:#a1a1a6;
+      --border:#222;
+    }
+    *{box-sizing:border-box}
     body{
       margin:0;
       font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
-      background:#050509;
-      color:#f5f5f7;
+      background:var(--bg-main);
+      color:var(--text-main);
       display:flex;
       flex-direction:column;
       height:100vh;
+      overflow:hidden;
     }
     header{
       padding:12px 16px;
-      border-bottom:1px solid #222;
+      border-bottom:1px solid var(--border);
       text-align:center;
       font-size:15px;
-      color:#a1a1a6;
+      color:var(--text-muted);
+      position:relative;
+      z-index:2;
+      background:#050509;
+    }
+
+    /* زر فتح الملفات */
+    .files-toggle{
+      position:absolute;
+      left:10px;
+      top:50%;
+      transform:translateY(-50%);
+      background:#1f1f28;
+      border:1px solid #333;
+      color:#fff;
+      border-radius:8px;
+      padding:4px 8px;
+      cursor:pointer;
+      font-size:14px;
+    }
+
+    .layout{
+      display:flex;
+      flex:1;
+      overflow:hidden;
+      position:relative;
+    }
+
+    /* السلايد الجانبي للملفات */
+    .files-sidebar{
+      width:260px;
+      background:#0b0b10;
+      border-left:1px solid var(--border);
+      border-right:1px solid var(--border);
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      transform:translateX(-100%);
+      transition:0.25s ease;
+      z-index:1;
+    }
+    .files-sidebar.open{
+      transform:translateX(0);
+    }
+    .files-header{
+      font-size:14px;
+      color:var(--text-muted);
+      margin-bottom:4px;
+    }
+    #filesList{
+      flex:1;
+      overflow-y:auto;
+      border:1px solid #222;
+      border-radius:8px;
+      padding:4px;
+      font-size:13px;
+    }
+    .file-item{
+      padding:6px 8px;
+      border-radius:6px;
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      gap:6px;
+    }
+    .file-item span{
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .file-item:hover{
+      background:#1b1b24;
+    }
+    .file-item.active{
+      background:#1f1f28;
+      border:1px solid #333;
+    }
+    #filePreview{
+      margin-top:6px;
+      background:#111118;
+      border-radius:8px;
+      padding:8px;
+      font-size:12px;
+      max-height:150px;
+      overflow:auto;
+      direction:ltr;
+      text-align:left;
+      white-space:pre;
+    }
+
+    /* منطقة المحادثة */
+    .chat-wrapper{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      height:100%;
     }
     .chat-container{
       flex:1;
       overflow-y:auto;
       padding:16px;
-      background:#111118;
+      background:var(--bg-chat);
     }
     .message{
       max-width:70%;
@@ -35,30 +142,51 @@
       line-height:1.6;
       font-size:14px;
       white-space:pre-wrap;
+      position:relative;
     }
     .message.user{
       margin-left:auto;
-      background:#0b93f6;
+      background:var(--bg-user);
       color:#fff;
       border-bottom-right-radius:4px;
     }
     .message.ai{
       margin-right:auto;
-      background:#1f1f28;
+      background:var(--bg-ai);
       border-bottom-left-radius:4px;
     }
     .message.system{
       text-align:center;
       margin:10px auto;
       font-size:12px;
-      color:#a1a1a6;
+      color:var(--text-muted);
       background:transparent;
     }
+
+    /* زر النسخ */
+    .copy-btn{
+      position:absolute;
+      top:6px;
+      left:-40px;
+      background:#2c2c2e;
+      color:#fff;
+      border:none;
+      padding:4px 6px;
+      font-size:12px;
+      border-radius:6px;
+      cursor:pointer;
+      opacity:0;
+      transition:0.2s;
+    }
+    .message.ai:hover .copy-btn{
+      opacity:1;
+    }
+
     .input-bar{
       display:flex;
       gap:8px;
       padding:10px;
-      border-top:1px solid #222;
+      border-top:1px solid var(--border);
       background:#050509;
     }
     .input-bar textarea{
@@ -85,47 +213,132 @@
       opacity:.5;
       cursor:default;
     }
+
+    @media(max-width:768px){
+      .message{max-width:90%}
+      .files-sidebar{
+        position:absolute;
+        height:100%;
+        top:0;
+        left:0;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <header>محادثة Mistral API</header>
+  <header>
+    محادثة شبيهة بـ ChatGPT – مع ملفات مشروع
+    <button id="toggleFiles" class="files-toggle">📁 ملفات</button>
+  </header>
 
-  <main id="chat" class="chat-container">
-    <div class="message system">ابدأ بكتابة سؤالك…</div>
-  </main>
+  <div class="layout">
+    <!-- السلايد الجانبي للملفات -->
+    <aside id="filesSidebar" class="files-sidebar">
+      <div class="files-header">ملفات المشروع البرمجي</div>
+      <div id="filesList"></div>
+      <pre id="filePreview" placeholder="لا يوجد ملف محدد"></pre>
+    </aside>
 
-  <div class="input-bar">
-    <textarea id="input" rows="1" placeholder="اكتب هنا..."></textarea>
-    <button id="sendBtn">إرسال</button>
+    <!-- المحادثة -->
+    <div class="chat-wrapper">
+      <main id="chat" class="chat-container">
+        <div class="message system">
+          اكتب سؤالك عادي…  
+          وإذا أردت مشروع برمجي قل مثلاً:  
+          "كوّن لي مشروع موقع شخصي بـ HTML وCSS وJS"
+        </div>
+      </main>
+
+      <div class="input-bar">
+        <textarea id="input" rows="1" placeholder="اكتب هنا..."></textarea>
+        <button id="sendBtn">إرسال</button>
+      </div>
+    </div>
   </div>
 
   <script>
     const chat = document.getElementById('chat');
     const input = document.getElementById('input');
     const sendBtn = document.getElementById('sendBtn');
+    const toggleFilesBtn = document.getElementById('toggleFiles');
+    const filesSidebar = document.getElementById('filesSidebar');
+    const filesList = document.getElementById('filesList');
+    const filePreview = document.getElementById('filePreview');
 
-    // 🔑 مفتاح Mistral API (ضع مفتاحك هنا)
-    const MISTRAL_API_KEY = "fkU26zoB0QlbqfaV79jKfm098kO4EJcy";
+    // 🔑 مفتاح Mistral API – ضع مفتاحك هنا
+    const MISTRAL_API_KEY = "YOUR_MISTRAL_API_KEY_HERE";
+
+    // حالة الملفات
+    const files = {};
+    let currentFile = null;
 
     function addMessage(text, type){
       const div = document.createElement('div');
       div.className = 'message ' + type;
       div.textContent = text;
+
+      if(type === 'ai'){
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.textContent = "نسخ";
+        btn.onclick = () => {
+          navigator.clipboard.writeText(text);
+          btn.textContent = "✓";
+          setTimeout(() => btn.textContent = "نسخ", 1200);
+        };
+        div.appendChild(btn);
+      }
+
       chat.appendChild(div);
       chat.scrollTop = chat.scrollHeight;
     }
 
-    async function sendToMistral(userText){
-      const url = "https://api.mistral.ai/v1/chat/completions";
+    function renderFilesList(){
+      filesList.innerHTML = '';
+      const names = Object.keys(files);
+      if(names.length === 0){
+        filesList.innerHTML = '<div style="padding:6px;color:#777;font-size:12px;">لا توجد ملفات بعد</div>';
+        filePreview.textContent = '';
+        return;
+      }
+      names.forEach(name=>{
+        const item = document.createElement('div');
+        item.className = 'file-item' + (currentFile === name ? ' active' : '');
+        const span = document.createElement('span');
+        span.textContent = name;
+        const size = document.createElement('span');
+        size.style.fontSize = '11px';
+        size.style.color = '#888';
+        size.textContent = files[name].length + 'b';
+        item.appendChild(span);
+        item.appendChild(size);
+        item.onclick = () => {
+          currentFile = name;
+          filePreview.textContent = files[name];
+          renderFilesList();
+        };
+        filesList.appendChild(item);
+      });
+      if(currentFile && files[currentFile]){
+        filePreview.textContent = files[currentFile];
+      }
+    }
 
+    function addFile(name, content){
+      files[name] = content;
+      currentFile = name;
+      renderFilesList();
+    }
+
+    async function sendToMistralNormal(userText){
+      const url = "https://api.mistral.ai/v1/chat/completions";
       const body = {
         model: "mistral-large-latest",
         messages: [
           { role: "user", content: userText }
         ]
       };
-
       const res = await fetch(url, {
         method: "POST",
         headers: {
@@ -134,10 +347,74 @@
         },
         body: JSON.stringify(body)
       });
-
       const data = await res.json();
-
       return data.choices[0].message.content;
+    }
+
+    // طلب مشروع برمجي: نطلب من النموذج أن يرجع JSON فقط فيه الملفات
+    async function sendToMistralProject(userText){
+      const url = "https://api.mistral.ai/v1/chat/completions";
+      const body = {
+        model: "mistral-large-latest",
+        messages: [
+          {
+            role: "system",
+            content:
+`You are a code project generator.
+Respond ONLY with valid JSON in this exact shape:
+
+{
+  "files": [
+    { "name": "index.html", "content": "<!DOCTYPE html>..." },
+    { "name": "style.css", "content": "body { ... }" }
+  ]
+}
+
+No explanations, no markdown, no extra text.`
+          },
+          { role: "user", content: userText }
+        ]
+      };
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + MISTRAL_API_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      return data.choices[0].message.content;
+    }
+
+    async function handleProjectFlow(text){
+      try{
+        const raw = await sendToMistralProject(text);
+
+        let json;
+        try{
+          json = JSON.parse(raw);
+        }catch(e){
+          addMessage("⚠️ تعذر فهم استجابة المشروع (ليست JSON صالحة).", "ai");
+          return;
+        }
+
+        if(!json.files || !Array.isArray(json.files) || json.files.length === 0){
+          addMessage("⚠️ لم يتم العثور على ملفات في استجابة النموذج.", "ai");
+          return;
+        }
+
+        // هنا نحقق طلبك: كل ملف يُرسل في رسالة مستقلة
+        json.files.forEach(file=>{
+          const name = file.name || "unnamed.txt";
+          const content = file.content || "";
+          addFile(name, content);
+          addMessage("ملف: " + name + "\n\n" + content, "ai");
+        });
+
+      }catch(e){
+        addMessage("⚠️ حدث خطأ أثناء توليد المشروع.", "ai");
+      }
     }
 
     async function send(){
@@ -148,25 +425,37 @@
       input.value = '';
       sendBtn.disabled = true;
 
-      try {
-        const reply = await sendToMistral(text);
-        addMessage(reply, 'ai');
-      } catch (e) {
-        addMessage("⚠️ حدث خطأ أثناء الاتصال بـ Mistral", "ai");
+      // إذا كان الطلب عن "مشروع" نستخدم وضع المشروع
+      const isProject =
+        text.includes("مشروع") ||
+        text.includes("project") ||
+        text.includes("موقع") && text.includes("كامل");
+
+      if(isProject){
+        await handleProjectFlow(text);
+      }else{
+        try{
+          const reply = await sendToMistralNormal(text);
+          addMessage(reply, 'ai');
+        }catch(e){
+          addMessage("⚠️ حدث خطأ أثناء الاتصال بـ Mistral", "ai");
+        }
       }
 
       sendBtn.disabled = false;
     }
 
     sendBtn.onclick = send;
-
     input.addEventListener('keydown', e=>{
       if(e.key === 'Enter' && !e.shiftKey){
         e.preventDefault();
         send();
       }
     });
-  </script>
 
+    toggleFilesBtn.onclick = () => {
+      filesSidebar.classList.toggle('open');
+    };
+  </script>
 </body>
 </html>
